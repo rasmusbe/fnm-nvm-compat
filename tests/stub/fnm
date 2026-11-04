@@ -1,0 +1,34 @@
+#!/bin/sh
+# Fake fnm for tests. Logs each call as one line, every argument wrapped in
+# brackets, to $FNM_STUB_LOG, and prints canned output for read-only commands.
+# `exec` runs the command after `--` so that `nvm which <ver>` can be checked.
+
+line=""
+for a in "$@"; do
+  line="$line[$a]"
+done
+printf '%s\n' "$line" >> "${FNM_STUB_LOG:?FNM_STUB_LOG not set}"
+
+case "$1" in
+  --version) echo "fnm 1.39.0" ;;
+  current) echo "v20.11.1" ;;
+  default) [ $# -eq 1 ] && echo "v20.11.1" ;;
+  ls|list)
+    echo "* v18.19.0"
+    echo "* v20.11.1 default, lts-iron"
+    echo "* system"
+    ;;
+  list-remote|ls-remote)
+    case " $* " in
+      *" --latest "*) echo "v20.11.1 (Iron)" ;;
+      *) echo "v18.19.0 (Hydrogen)"; echo "v20.11.1 (Iron)" ;;
+    esac
+    ;;
+  exec)
+    shift
+    while [ $# -gt 0 ] && [ "$1" != "--" ]; do shift; done
+    [ "$1" = "--" ] && shift
+    [ $# -gt 0 ] && exec "$@"
+    ;;
+esac
+exit 0
