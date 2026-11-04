@@ -28,6 +28,21 @@ Usage:
 EOF
 }
 
+# Build fnm list-remote arguments from nvm ls-remote arguments into the
+# global array _nvm_compat_args: a bare pattern becomes --filter <pattern>,
+# nvm's --no-colors is dropped, other flags pass through.
+_nvm_compat_remote_args() {
+  _nvm_compat_args=()
+  local a
+  for a in "$@"; do
+    case "${a}" in
+      --no-colors) ;;
+      -*) _nvm_compat_args+=("${a}") ;;
+      *) _nvm_compat_args+=(--filter "${a}") ;;
+    esac
+  done
+}
+
 nvm() {
   if [[ $# -eq 0 ]]; then
     _nvm_compat_usage
@@ -57,6 +72,15 @@ nvm() {
     # ── Identical passthrough ──────────────────────────────────────────────
     uninstall|current|ls|list|unalias)
       fnm "${cmd}" "$@"
+      ;;
+
+    # ── ls-remote / list-remote ───────────────────────────────────────────
+    # nvm:  ls-remote [<pattern>] [--lts[=<name>]]
+    # fnm:  list-remote [--filter <pattern>] [--lts[=<name>]]
+    # Flags pass through unchanged; fnm has no positional pattern.
+    ls-remote|list-remote)
+      _nvm_compat_remote_args "$@"
+      fnm list-remote "${_nvm_compat_args[@]}"
       ;;
 
     # ── install ───────────────────────────────────────────────────────────
@@ -180,10 +204,15 @@ nvm() {
       ;;
 
     # ── version-remote ────────────────────────────────────────────────────
+    # nvm:  version-remote [<pattern>] [--lts[=<name>]]
+    # fnm:  list-remote [--filter <pattern>] [--lts[=<name>]] --latest
+    # fnm appends the LTS codename, e.g. "v22.23.4 (Jod)"; nvm prints the
+    # version only.
     version-remote)
-      local pattern="${1}"
-      echo "[nvm-compat] Approximating with 'fnm ls-remote' filtered by '${pattern}':" >&2
-      fnm ls-remote | grep "${pattern}"
+      _nvm_compat_remote_args "$@"
+      local out
+      out="$(fnm list-remote "${_nvm_compat_args[@]}" --latest)" || return
+      echo "${out%% *}"
       ;;
 
     # ── unload ────────────────────────────────────────────────────────────
