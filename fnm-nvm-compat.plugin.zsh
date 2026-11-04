@@ -3,11 +3,45 @@
 # This file does not install or set up fnm. It expects `fnm` to be on PATH
 # and already initialized by your own shell configuration.
 
+_nvm_compat_usage() {
+  cat <<'EOF'
+nvm (fnm-nvm-compat): nvm commands translated to fnm
+
+Usage:
+  nvm install [<version>|--lts|--latest]   Install a version and switch to it
+  nvm uninstall <version>                  Uninstall a version
+  nvm use [<version>]                      Switch version (reads .nvmrc without args)
+  nvm current                              Print the active version
+  nvm ls | list                            List installed versions and aliases
+  nvm ls-remote | list-remote [<pattern>] [--lts[=<name>]]
+                                           List remote versions
+  nvm version-remote [<pattern>] [--lts]   Print the newest remote version matching
+  nvm alias [<name> <version>]             Create an alias, or list aliases
+  nvm alias default [<version>]            Set or print the default version
+  nvm unalias <name>                       Remove an alias
+  nvm run <version> [<args>...]            Run node from <version>
+  nvm exec <version> <command> [<args>...] Run <command> with <version> on PATH
+  nvm which [current|<version>]            Print the path to the node binary
+  nvm version [current|<version>]          Resolve a version to an installed one
+  nvm cache clear                          No-op (fnm keeps no download cache)
+  nvm --version                            Print the fnm version
+EOF
+}
+
 nvm() {
+  if [[ $# -eq 0 ]]; then
+    _nvm_compat_usage
+    return 0
+  fi
+
   local cmd="${1}"
   shift
 
   case "${cmd}" in
+
+    help|--help|-h)
+      _nvm_compat_usage
+      ;;
 
     # ── Identical passthrough ──────────────────────────────────────────────
     install|uninstall|use|current|ls|list|ls-remote|list-remote|unalias)
