@@ -101,16 +101,16 @@ nvm() {
       ;;
 
     # ── which ─────────────────────────────────────────────────────────────
-    # nvm which <version>  →  fnm which (always prints current node path)
-    # Approximation: use + which
+    # fnm has no `which` command, and `fnm current` prints a version, not a path.
+    # nvm which [current]  →  command -v node
+    # nvm which <version>  →  fnm exec --using=<version> -- sh -c 'command -v node'
     which)
       local ver="${1}"
-      if [[ -n "${ver}" ]]; then
-        echo "[nvm-compat] 'nvm which <version>' approximated: switching temporarily not supported." >&2
-        echo "[nvm-compat] Run 'fnm use ${ver} && fnm which' manually." >&2
-        return 1
+      if [[ -z "${ver}" || "${ver}" == "current" ]]; then
+        command -v node
+      else
+        fnm exec --using="${ver}" -- sh -c 'command -v node'
       fi
-      fnm which
       ;;
 
     # ── deactivate ────────────────────────────────────────────────────────
