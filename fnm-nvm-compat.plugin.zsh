@@ -240,3 +240,19 @@ nvm() {
       ;;
   esac
 }
+
+# ── Completion (zsh only) ─────────────────────────────────────────────────
+# Put this directory on fpath so `_nvm` is found whatever loads the plugin.
+# When compinit has already run (manual `source` after compinit), register the
+# completion directly.
+if [[ -n "${ZSH_VERSION-}" ]]; then
+  _nvm_compat_dir="${${(%):-%x}:A:h}"
+  if (( ! ${fpath[(Ie)${_nvm_compat_dir}]} )); then
+    fpath=("${_nvm_compat_dir}" $fpath)
+  fi
+  if (( ${+functions[compdef]} )); then
+    autoload -Uz _nvm
+    compdef _nvm nvm
+  fi
+  unset _nvm_compat_dir
+fi

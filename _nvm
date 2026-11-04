@@ -1,0 +1,131 @@
+#compdef nvm
+# Completion for the nvm command defined by fnm-nvm-compat.
+# Installed versions and aliases come from `fnm ls`; nothing touches the network.
+
+# Print installed versions and aliases, one per line. `fnm ls` prints lines like
+#   * v20.11.1 default, lts-iron
+#   * system default
+_nvm_compat_installed() {
+  local line
+  for line in ${(f)"$(fnm ls 2>/dev/null)"}; do
+    line=${line#\* }
+    print -rl -- ${=line//,/ }
+  done
+}
+
+# Print alias names only: every word after the version on each `fnm ls` line.
+_nvm_compat_aliases() {
+  local line
+  local -a words
+  for line in ${(f)"$(fnm ls 2>/dev/null)"}; do
+    line=${line#\* }
+    words=(${=line//,/ })
+    (( ${#words} > 1 )) && print -rl -- ${words[2,-1]}
+  done
+}
+
+_nvm_compat_versions() {
+  local -a versions
+  versions=(${(u)${(f)"$(_nvm_compat_installed)"}})
+  _describe -t versions 'installed version or alias' versions "$@"
+}
+
+_nvm() {
+  local -a commands
+  commands=(
+    'install:install a version and switch to it'
+    'uninstall:uninstall a version'
+    'use:switch to a version'
+    'current:print the active version'
+    'ls:list installed versions and aliases'
+    'list:list installed versions and aliases'
+    'ls-remote:list remote versions'
+    'list-remote:list remote versions'
+    'version-remote:print the newest remote version matching a pattern'
+    'alias:create or list aliases'
+    'unalias:remove an alias'
+    'run:run node from a version'
+    'exec:run a command with a version on PATH'
+    'which:print the path to the node binary'
+    'version:resolve a version to an installed one'
+    'cache:cache commands (clear is a no-op)'
+    'help:show usage'
+    '--version:print the fnm version'
+  )
+
+  if (( CURRENT == 2 )); then
+    _describe -t commands 'nvm command' commands
+    return
+  fi
+
+  local -a extra
+  case ${words[2]} in
+    install)
+      (( CURRENT == 3 )) || return 1
+      local -a common
+      common=(
+        'lts/*:latest LTS release'
+        'latest:latest release'
+        'node:latest release'
+        '--lts:latest LTS release'
+        '--latest:latest release'
+      )
+      _describe -t versions 'version' common
+      ;;
+    use|uninstall)
+      (( CURRENT == 3 )) && _nvm_compat_versions
+      ;;
+    which|version)
+      if (( CURRENT == 3 )); then
+        extra=('current:the active version')
+        _describe -t special 'special' extra
+        _nvm_compat_versions
+      fi
+      ;;
+    run)
+      if (( CURRENT == 3 )); then
+        _nvm_compat_versions
+      else
+        _files
+      fi
+      ;;
+    exec)
+      if (( CURRENT == 3 )); then
+        _nvm_compat_versions
+      else
+        # Complete the rest as a normal command line.
+        shift 2 words
+        (( CURRENT -= 2 ))
+        _normal
+      fi
+      ;;
+    alias)
+      if (( CURRENT == 3 )); then
+        local -a names
+        names=(default ${(u)${(f)"$(_nvm_compat_aliases)"}})
+        _describe -t aliases 'alias name' names
+      elif (( CURRENT == 4 )); then
+        _nvm_compat_versions
+      fi
+      ;;
+    unalias)
+      if (( CURRENT == 3 )); then
+        local -a names
+        names=(${(u)${(f)"$(_nvm_compat_aliases)"}})
+        _describe -t aliases 'alias name' names
+      fi
+      ;;
+    ls-remote|list-remote|version-remote)
+      extra=('--lts:only LTS releases')
+      _describe -t options 'option' extra
+      ;;
+    cache)
+      if (( CURRENT == 3 )); then
+        extra=('clear:no-op, fnm keeps no download cache')
+        _describe -t commands 'cache command' extra
+      fi
+      ;;
+  esac
+}
+
+_nvm "$@"
