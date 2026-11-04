@@ -55,14 +55,39 @@ nvm() {
   case "${cmd}" in
 
     # ── Identical passthrough ──────────────────────────────────────────────
-    uninstall|use|current|ls|list|ls-remote|list-remote|unalias)
+    uninstall|current|ls|list|unalias)
       fnm "${cmd}" "$@"
       ;;
 
     # ── install ───────────────────────────────────────────────────────────
     # nvm switches to the new version after installing; fnm needs --use.
+    # nvm's `node`/`stable` mean the newest release. fnm parses those words
+    # (and `latest`) as alias names and refuses to install them; the newest
+    # release is `--latest`, which also tags it with the alias `latest`.
     install)
-      fnm install --use "$@"
+      local -a args
+      local a
+      for a in "$@"; do
+        case "${a}" in
+          node|stable|latest) args+=(--latest) ;;
+          *) args+=("${a}") ;;
+        esac
+      done
+      fnm install --use "${args[@]}"
+      ;;
+
+    # ── use ───────────────────────────────────────────────────────────────
+    # `nvm use node` → the `latest` alias that `fnm install --latest` creates.
+    use)
+      local -a args
+      local a
+      for a in "$@"; do
+        case "${a}" in
+          node|stable) args+=(latest) ;;
+          *) args+=("${a}") ;;
+        esac
+      done
+      fnm use "${args[@]}"
       ;;
 
     # ── version / --version ───────────────────────────────────────────────
