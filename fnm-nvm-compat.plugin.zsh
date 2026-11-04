@@ -74,9 +74,9 @@ nvm() {
       if [[ "${name}" == "default" ]]; then
         fnm default "${ver}"
       elif [[ -z "${name}" ]]; then
-        # nvm alias with no args lists aliases — fnm has no direct equivalent
-        echo "[nvm-compat] fnm has no 'list aliases' command." >&2
-        return 1
+        # fnm has no command that lists only aliases; `fnm ls` shows each
+        # installed version followed by its aliases.
+        fnm ls
       else
         fnm alias "${ver}" "${name}"
       fi
