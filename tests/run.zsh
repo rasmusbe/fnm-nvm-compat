@@ -34,8 +34,8 @@ run_nvm() {
   local log=$TMP/fnm.log
   : >| $log
   rc=0
-  env -i HOME=$TMP PATH=$STUB:/usr/bin:/bin FNM_STUB_LOG=$log \
-    $SHELL_CMD -c 'source "$1"; shift; nvm "$@"' nvm-test $PLUGIN "$@" \
+  env -i HOME=$TMP PATH=${PATH_PREFIX-}$STUB:/usr/bin:/bin FNM_STUB_LOG=$log \
+    ${=ENV_EXTRA-} $SHELL_CMD -c 'source "$1"; shift; nvm "$@"' nvm-test $PLUGIN "$@" \
     >| $TMP/out 2>| $TMP/err || rc=$?
   out=$(<$TMP/out)
   err=$(<$TMP/err)
@@ -144,6 +144,19 @@ mapping_tests() {
   expect ''                               which current
   expect '[exec][--using=20][--][sh][-c][command -v node]' which 20
   expect_out "$STUB/node"                 which 20
+
+  # which system: skip fnm's multishell dirs, which fnm exec keeps on PATH.
+  local ms=$TMP/fnm_multishells/1_2
+  mkdir -p $ms/bin
+  print '#!/bin/sh' >| $ms/bin/node
+  chmod +x $ms/bin/node
+  PATH_PREFIX=$ms/bin: expect ''          which system
+  PATH_PREFIX=$ms/bin: expect_out "$STUB/node" which system
+  # Also when FNM_MULTISHELL_PATH points at a dir not named fnm_multishells.
+  local ms2=$TMP/ms/1_2
+  mkdir -p $ms2/bin
+  cp $ms/bin/node $ms2/bin/node
+  PATH_PREFIX=$ms2/bin: ENV_EXTRA=FNM_MULTISHELL_PATH=$ms2 expect_out "$STUB/node" which system
 
   expect '[current]'                      version
   expect '[current]'                      version current

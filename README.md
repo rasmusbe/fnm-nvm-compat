@@ -105,6 +105,7 @@ rasmusbe/fnm-nvm-compat
 | `nvm exec <v> <cmd> [args]` | `fnm exec --using=<v> -- <cmd> [args]` | |
 | `nvm which`, `nvm which current` | (none) `command -v node` | fnm has no `which` command, and `fnm current` prints a version, not a path. |
 | `nvm which <v>` | (none) `fnm exec --using=<v> -- sh -c 'command -v node'` | |
+| `nvm which system` | (none) first `node` on `PATH` outside fnm's multishell directories | `fnm exec --using=system` keeps fnm's multishell `bin` on `PATH`, so `command -v node` would find fnm's active version. |
 | `nvm version [current]` | `fnm current` | |
 | `nvm version <v>` | `fnm exec --using=<v> -- node --version` | Resolves `<v>` to an installed version. |
 | `nvm --version` | `fnm --version` | Prints fnm's version, not an nvm version. |

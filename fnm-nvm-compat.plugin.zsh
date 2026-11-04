@@ -43,6 +43,30 @@ _nvm_compat_remote_args() {
   done
 }
 
+# Print the first node on PATH outside fnm's multishell directories.
+# `fnm exec --using=system` leaves the multishell bin dir on PATH, so
+# `command -v node` there finds fnm's active version, not the system node.
+# Splits PATH by hand so it works in zsh (no word splitting) and bash.
+_nvm_compat_system_node() {
+  local rest="${PATH}:" dir
+  while [[ -n "${rest}" ]]; do
+    dir="${rest%%:*}"
+    rest="${rest#*:}"
+    case "${dir}" in
+      ''|*/fnm_multishells/*) continue ;;
+    esac
+    if [[ -n "${FNM_MULTISHELL_PATH-}" && "${dir}" == "${FNM_MULTISHELL_PATH}"/* ]]; then
+      continue
+    fi
+    if [[ -x "${dir}/node" && ! -d "${dir}/node" ]]; then
+      echo "${dir}/node"
+      return 0
+    fi
+  done
+  echo "[nvm-compat] no system node found on PATH" >&2
+  return 1
+}
+
 nvm() {
   if [[ $# -eq 0 ]]; then
     _nvm_compat_usage
@@ -186,10 +210,13 @@ nvm() {
     # fnm has no `which` command, and `fnm current` prints a version, not a path.
     # nvm which [current]  →  command -v node
     # nvm which <version>  →  fnm exec --using=<version> -- sh -c 'command -v node'
+    # nvm which system     →  first node on PATH outside fnm's multishell dirs
     which)
       local ver="${1}"
       if [[ -z "${ver}" || "${ver}" == "current" ]]; then
         command -v node
+      elif [[ "${ver}" == "system" ]]; then
+        _nvm_compat_system_node
       else
         fnm exec --using="${ver}" -- sh -c 'command -v node'
       fi
