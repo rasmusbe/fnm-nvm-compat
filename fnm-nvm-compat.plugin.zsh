@@ -72,7 +72,13 @@ nvm() {
       local name="${1}"
       local ver="${2}"
       if [[ "${name}" == "default" ]]; then
-        fnm default "${ver}"
+        # Without a version, `fnm default` prints the default. Passing an empty
+        # string instead makes fnm 1.39.0 point the default alias at nothing.
+        if [[ -n "${ver}" ]]; then
+          fnm default "${ver}"
+        else
+          fnm default
+        fi
       elif [[ -z "${name}" ]]; then
         # fnm has no command that lists only aliases; `fnm ls` shows each
         # installed version followed by its aliases.
