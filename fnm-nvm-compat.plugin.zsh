@@ -38,10 +38,21 @@ nvm() {
   shift
 
   case "${cmd}" in
-
     help|--help|-h)
       _nvm_compat_usage
+      return 0
       ;;
+  esac
+
+  # fnm must already be installed and set up by the user's shell config.
+  # `command -v` also finds a shell function named fnm.
+  if ! command -v fnm >/dev/null 2>&1; then
+    echo "[nvm-compat] fnm not found. Install fnm and set it up in your shell" >&2
+    echo "[nvm-compat] (see https://github.com/Schniz/fnm#shell-setup)." >&2
+    return 127
+  fi
+
+  case "${cmd}" in
 
     # ── Identical passthrough ──────────────────────────────────────────────
     install|uninstall|use|current|ls|list|ls-remote|list-remote|unalias)
