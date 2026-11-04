@@ -84,20 +84,30 @@ nvm() {
       ;;
 
     # ── install ───────────────────────────────────────────────────────────
-    # nvm switches to the new version after installing; fnm needs --use.
+    # nvm switches to the new version after installing. fnm 1.39.0 has
+    # `install --use`, but with FNM_COREPACK_ENABLED=true it skips the switch
+    # when the version is already installed, so run `fnm use` afterwards.
     # nvm's `node`/`stable` mean the newest release. fnm parses those words
     # (and `latest`) as alias names and refuses to install them; the newest
-    # release is `--latest`, which also tags it with the alias `latest`.
+    # release is `--latest`, which also tags it with the alias `latest`
+    # (and `--lts` tags `lts-latest`).
     install)
       local -a args
-      local a
+      local a use_ver=""
       for a in "$@"; do
         case "${a}" in
-          node|stable|latest) args+=(--latest) ;;
-          *) args+=("${a}") ;;
+          node|stable|latest|--latest) args+=(--latest); use_ver=latest ;;
+          --lts) args+=(--lts); use_ver=lts-latest ;;
+          -*) args+=("${a}") ;;
+          *) args+=("${a}"); use_ver="${a}" ;;
         esac
       done
-      fnm install --use "${args[@]}"
+      fnm install "${args[@]}" || return
+      if [[ -n "${use_ver}" ]]; then
+        fnm use "${use_ver}"
+      else
+        fnm use
+      fi
       ;;
 
     # ── use ───────────────────────────────────────────────────────────────

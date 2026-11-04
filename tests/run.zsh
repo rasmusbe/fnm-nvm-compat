@@ -92,14 +92,16 @@ mapping_tests() {
   [[ $out == *Usage:* ]] && pass "nvm prints usage" || fail "nvm prints usage" "got: $out"
   expect '' help
 
-  # install: always --use; node/stable/latest become --latest.
-  expect '[install][--use][20]'           install 20
-  expect '[install][--use]'               install
-  expect '[install][--use][--lts]'        install --lts
-  expect '[install][--use][lts/iron]'     install lts/iron
-  expect '[install][--use][--latest]'     install node
-  expect '[install][--use][--latest]'     install stable
-  expect '[install][--use][--latest]'     install latest
+  # install, then use: fnm install --use skips the switch for an installed
+  # version when corepack is enabled.
+  expect $'[install][20]\n[use][20]'           install 20
+  expect $'[install]\n[use]'                   install
+  expect $'[install][--lts]\n[use][lts-latest]' install --lts
+  expect $'[install][lts/iron]\n[use][lts/iron]' install lts/iron
+  expect $'[install][--latest]\n[use][latest]' install node
+  expect $'[install][--latest]\n[use][latest]' install stable
+  expect $'[install][--latest]\n[use][latest]' install latest
+  expect $'[install][--latest]\n[use][latest]' install --latest
 
   expect '[uninstall][18]'                uninstall 18
 

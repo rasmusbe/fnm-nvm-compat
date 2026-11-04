@@ -6,7 +6,7 @@ scripts and project docs that say `nvm use 20` or `nvm install --lts` keep
 working on a machine that runs fnm.
 
 ```console
-$ nvm install 22        # fnm install --use 22
+$ nvm install 22        # fnm install 22, then fnm use 22
 $ nvm alias default 22  # fnm default 22
 $ nvm which 20          # path to node 20, resolved through fnm exec
 ```
@@ -83,10 +83,10 @@ rasmusbe/fnm-nvm-compat
 
 | nvm | fnm | Notes |
 | --- | --- | --- |
-| `nvm install <v>` | `fnm install --use <v>` | nvm switches to the new version after installing; fnm needs `--use` for that. |
-| `nvm install` | `fnm install --use` | Reads `.nvmrc` / `.node-version`. |
-| `nvm install --lts` | `fnm install --use --lts` | |
-| `nvm install node` / `stable` / `latest` | `fnm install --use --latest` | fnm reads these words as alias names and cannot install them. |
+| `nvm install <v>` | `fnm install <v>`, then `fnm use <v>` | nvm switches to the new version after installing. fnm 1.39.0's `install --use` skips the switch for an already installed version when corepack is enabled, so the plugin runs `fnm use` itself. |
+| `nvm install` | `fnm install`, then `fnm use` | Reads `.nvmrc` / `.node-version`. |
+| `nvm install --lts` | `fnm install --lts`, then `fnm use lts-latest` | `lts-latest` is the alias `fnm install --lts` creates. |
+| `nvm install node` / `stable` / `latest` | `fnm install --latest`, then `fnm use latest` | fnm reads these words as alias names and cannot install them. |
 | `nvm uninstall <v>` | `fnm uninstall <v>` | |
 | `nvm use <v>` | `fnm use <v>` | |
 | `nvm use node` / `stable` | `fnm use latest` | `latest` is the alias `fnm install --latest` creates. |
