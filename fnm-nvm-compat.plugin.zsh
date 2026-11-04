@@ -127,14 +127,19 @@ nvm() {
       ;;
 
     # ── cache clear ───────────────────────────────────────────────────────
+    # fnm keeps no download cache: FNM_DIR only holds installed versions and
+    # aliases, so there is nothing to clear. Never suggest deleting FNM_DIR.
     cache)
       if [[ "${1}" == "clear" ]]; then
-        echo "[nvm-compat] 'nvm cache clear' has no fnm equivalent." >&2
-        echo "[nvm-compat] Manually remove: $(fnm env | grep FNM_DIR | cut -d= -f2)" >&2
+        echo "[nvm-compat] fnm keeps no download cache; nothing to clear." >&2
+        if [[ -n "${FNM_DIR}" ]]; then
+          echo "[nvm-compat] ${FNM_DIR} holds installed versions and aliases (use 'nvm uninstall' to remove versions)." >&2
+        fi
+        return 0
       else
         echo "[nvm-compat] Unknown nvm cache subcommand: ${1}" >&2
+        return 1
       fi
-      return 1
       ;;
 
     # ── version-remote ────────────────────────────────────────────────────
