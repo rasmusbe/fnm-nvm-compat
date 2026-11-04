@@ -115,8 +115,19 @@ nvm() {
       ;;
 
     # ── version / --version ───────────────────────────────────────────────
-    version|--version)
+    # nvm --version prints nvm's own version; the closest match is fnm's.
+    --version)
       fnm --version
+      ;;
+
+    # nvm version [<version>] resolves a version string to an installed one.
+    version)
+      local ver="${1:-current}"
+      if [[ "${ver}" == "current" ]]; then
+        fnm current
+      else
+        fnm exec --using="${ver}" -- node --version
+      fi
       ;;
 
     # ── alias ─────────────────────────────────────────────────────────────
