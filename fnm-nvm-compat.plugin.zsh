@@ -1,6 +1,7 @@
-#!/usr/bin/env bash
-# nvm-compat: Drop-in nvm wrapper that delegates to fnm
-# Usage: source this file, or add to your shell rc
+# fnm-nvm-compat: an `nvm` command that translates nvm commands to fnm.
+#
+# This file does not install or set up fnm. It expects `fnm` to be on PATH
+# and already initialized by your own shell configuration.
 
 nvm() {
   local cmd="${1}"
