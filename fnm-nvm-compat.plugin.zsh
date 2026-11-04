@@ -55,8 +55,14 @@ nvm() {
   case "${cmd}" in
 
     # ── Identical passthrough ──────────────────────────────────────────────
-    install|uninstall|use|current|ls|list|ls-remote|list-remote|unalias)
+    uninstall|use|current|ls|list|ls-remote|list-remote|unalias)
       fnm "${cmd}" "$@"
+      ;;
+
+    # ── install ───────────────────────────────────────────────────────────
+    # nvm switches to the new version after installing; fnm needs --use.
+    install)
+      fnm install --use "$@"
       ;;
 
     # ── version / --version ───────────────────────────────────────────────
